@@ -113,8 +113,6 @@ userRouter.post('/send_mail' , async(req , res) => {
         const transporter = nodemailer.createTransport({
             service : 'gmail',
             auth : {
-               // user : 'ssivakumar358@gmail.com',
-                //pass : 'oxymmzjbnnrpuvwr'
                 user : process.env.USER ,
                 pass : process.env.PASS
             }
@@ -173,7 +171,7 @@ userRouter.post('/forgot_password' , async(req,res) => {
     })
     const mailOption = {
         from : process.env.USER , 
-        to : process.env.RECEIVING_MAIL_ID,//email , // user email
+        to : user.email, // user email
         subject:'PASSWORD RESET REQUEST',
         text:` Hi , ${user.userName} \n Forgot Your Password? \n We received a reset password request from your account \n\n
                 Your OTP for ${user.email} is ${user.resetPassword} \n OTP expires in 15 minutes `
