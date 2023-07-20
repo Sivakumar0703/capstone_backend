@@ -1,0 +1,9 @@
+
+
+To view the admin pannel page use you should use the admin login credentials
+
+
+ADMIN LOGIN DETAIL
+
+mail : bheema@gmail.com 
+password : 12345678
