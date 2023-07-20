@@ -25,6 +25,14 @@ password:{
     required:true
 },
 
+resetPassword:{
+    type:String
+},
+
+resetPasswordExpires:{
+    type:Date
+},
+
 role:{
     type:String,
     default:'user'

@@ -50,6 +50,7 @@ pictureRouter.put('/update/profile/picture' , upload.single('image') , async(req
     try {
         // deleting previous image from the server
          if(req.body.previousImage){
+            console.log('old' , req.body.previousImage )
             fs.unlink(`./public/images/${req.body.previousImage}` , (error) => {
                 if(error){
                     console.log(error)
@@ -57,12 +58,16 @@ pictureRouter.put('/update/profile/picture' , upload.single('image') , async(req
                     console.log('image deleted')
                 }
              })
+         } else {
+            console.log('skipped')
          }
          
          // updating new image to the database 
         const image = req.file.filename;
+        console.log(image , 'new');
         const update = await imageModel.updateOne({email:req.body.email} , {image:image} )
         res.status(200).json({message:'update success'})
+        console.log(update)
     } catch (error) {
        res.status(400).json({message:'update failed' , error}) 
     }

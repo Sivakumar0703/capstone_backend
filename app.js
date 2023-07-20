@@ -2,7 +2,9 @@ const express = require("express");
 const app_server = express();
 require("./Database/dbconfiguration");
 const cors = require('cors')
-require('dotenv').config();
+require('dotenv').config({path:'./.env'});
+
+
 
 // routes
 const bikeRouter = require("./routes/bikeRoute");

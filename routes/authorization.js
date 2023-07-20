@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 //const secretKey = "nefl$CJ*KLJDK#@bnK";
 const secretKey = process.env.SECRET_KEY;
 
+
 // masking password
 const hashPassword = async (password) => {
     let salt = await bcrypt.genSalt(10);

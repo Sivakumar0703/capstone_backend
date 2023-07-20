@@ -18,6 +18,8 @@ userRouter.get('/',async(req,res)=>{
 userRouter.post('/signup', async (req, res) => {
    
 //const newUser = new User(req.body)
+const {userName , mobile , email , password } = req.body
+
     try {
 
         let hashedPassword = await hashPassword(req.body.password)
@@ -26,12 +28,20 @@ userRouter.post('/signup', async (req, res) => {
         let user = await userModel.findOne({ email: req.body.email })
         
         if (!user) {
-            let user = await userModel.create(req.body);// get data from body(front end)
+            const newUser = new userModel ({
+                userName,
+                email,
+                mobile,
+                password : hashedPassword
+            })
+          //  let user = await userModel.create(req.body);// get data from body(front end)
+          await newUser.save();
             res.status(201).json({
                 message: "Signup successfull"
             })
         } else {
             res.status(400).json({ message: "user already exist!" })
+            console.log(user)
         }
 
     } catch (error) {
@@ -125,6 +135,7 @@ userRouter.post('/send_mail' , async(req , res) => {
         transporter.sendMail(mailOption , (error , info) => {
                  if(error){
                      console.log(error);
+                     res.status(404).json({message:'something went wrong.'})
                  } else {
                     console.log(`Email sent successfully : ${info.response}`)
                     res.status(200).send('mail sent successfully')
@@ -135,6 +146,99 @@ userRouter.post('/send_mail' , async(req , res) => {
         res.status(500).json({message: "Internal Server Error!", error: error , spot:"error in nodemailer"})
     }
 })
+
+
+// forgot password - otp generation
+userRouter.post('/forgot_password' , async(req,res) => {
+
+    const user = await userModel.findOne({email:req.body.email}); 
+    console.log(user , 'user')
+
+    if(!user){
+        return res.status(404).json({message:'user not found'})
+    }
+
+     user.resetPassword = Math.random().toString(36).slice(-8); // Generate OTP 
+     user.resetPasswordExpires = Date.now() + 900000; // expire time 15 minutes 
+
+     await user.save();
+
+     // sending mail to reset password
+     const transporter = nodemailer.createTransport({
+        service : 'gmail',
+        auth : {
+            user : process.env.USER ,
+            pass : process.env.PASS
+        }
+    })
+    const mailOption = {
+        from : process.env.USER , 
+        to : process.env.RECEIVING_MAIL_ID,//email , // user email
+        subject:'PASSWORD RESET REQUEST',
+        text:` Hi , ${user.userName} \n Forgot Your Password? \n We received a reset password request from your account \n\n
+                Your OTP for ${user.email} is ${user.resetPassword} \n OTP expires in 15 minutes `
+    }
+
+    transporter.sendMail(mailOption , (error , info) => {
+        if(error){
+            res.status(404).json({message:'something went wrong.'})
+        } else {
+           res.status(200).json({message:'mail sent successfully'  , info})
+        }
+})
+transporter.close()
+
+})
+
+
+// reset password using otp
+userRouter.post('/reset_password/:passcode' , async(req,res) =>{
+    const {passcode} = req.params;
+    console.log('code' , passcode)
+    const {password} = req.body;
+    console.log(Date.now() , Date.now()+3600000)
+
+    const user = await userModel.findOne({
+        resetPassword:passcode,
+        resetPasswordExpires:{$gt:Date.now()}
+    })
+
+    
+    if(!user){
+        return res.status(400).json({message:'OTP EXPIRED / OTP MISMATCH'})
+    }
+
+    const hashedPassword = await hashPassword(password)
+    user.password = hashedPassword;
+    user.resetPassword = '';
+    user.resetPasswordExpires = '';
+
+    await user.save();
+
+    res.status(200).json({message:'reset passsword successful'})
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
